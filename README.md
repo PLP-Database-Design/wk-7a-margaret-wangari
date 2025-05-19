@@ -59,5 +59,58 @@ Task:
 
 - Write an SQL query to transform this table into **2NF** by removing partial dependencies. Ensure that each non-key column fully depends on the entire primary key.
 
----
+--WITH
+  -- Create a temporary table to store the split values
+  TempProducts AS (
+    SELECT
+      OrderID,
+      CustomerName,
+      -- Split the comma-separated values into separate rows
+      value AS Product
+    FROM
+      ProductDetail,
+      LATERAL STRING_SPLIT(Products, ',') AS string_split(value)
+  )
+SELECT
+  OrderID,
+  CustomerName,
+  Product
+FROM
+  TempProducts;
+Explanation:
+1. WITH TempProducts AS (...):
+This defines a common table expression (CTE) called TempProducts. This CTE will hold the transformed data before it's used in the final SELECT statement.
+2. LATERAL STRING_SPLIT(Products, ',') AS string_split(value):
+This is the core part of the query. The LATERAL STRING_SPLIT function splits the Products column, which contains comma-separated values, into separate rows. Each comma-separated value is assigned to the value column in the string_split alias.
+3. SELECT OrderID, CustomerName, value AS Product:
+This selects the OrderID, CustomerName, and the split value (aliased as Product) from the TempProducts CTE.
+4. SELECT OrderID, CustomerName, Product FROM TempProducts:
+Finally, this selects the OrderID, CustomerName, and the Product from the TempProducts CTE, which now contains the normalized data where each row represents a single product for a given order. 
+Result:
+The query will produce a table where each row represents a single product ordered by a customer, ensuring the table is in 1NF. 
+For the given input, the transformed table will look like this:
+OrderID
+CustomerName
+Product
+101
+John Doe
+Laptop
+101
+John Doe
+Mouse
+102
+Jane Smith
+Tablet
+102
+Jane Smith
+Keyboard
+102
+Jane Smith
+Mouse
+103
+Emily Clark
+Phone
+
+AI responses may include mistakes.
+-
 Good luck 🚀
